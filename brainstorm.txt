@@ -1,0 +1,10 @@
+- What kind of stuff do I want to include in the algebra calculator? 
+  (These are some things I could include to work with)
+
+1. Polynomials expansion, simplification and factoring up
+2. Logarithms, trigonometry, exponentials use within expressions
+3. Index and surd laws simplification and use within expressions
+4. Differentiation and simple integration (of functions)
+5. Solving equations (some simple ones maybe?)
+
+
