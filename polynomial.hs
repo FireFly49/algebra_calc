@@ -1,6 +1,7 @@
  module Polynomial (expand, simplify, Polynomial(..)) where
 
 import           GHC.Natural (Natural)
+import GHC.TypeLits (Nat)
 
 
 type Deg = Natural
@@ -59,3 +60,44 @@ merge' f g
   where
     Add (Mono lcf df) ft = f
     Add (Mono lcg dg) gt = g
+
+-- Utility function to convert subtraction to add (mainly for parsing)
+negatePoly :: Polynomial -> Polynomial 
+negatePoly (Mono c d)     = Mono (-c) d
+negatePoly (Add f g)      = Add (negatePoly f) (negatePoly g)
+negatePoly (Mul f g)      = Mul (negatePoly f) g  -- or Mul f (negatePoly g), both are fine
+
+subPoly :: Polynomial -> Polynomial -> Polynomial
+subPoly f g = Add f (negatePoly g)
+
+-- Gives the highest degree of any given polynomial (Use for factoring)
+
+highestDegree :: Polynomial -> Deg
+highestDegree (Mono c d)  = d
+highestDegree (Add f g) = max (highestDegree f) (highestDegree g)
+highestDegree (Mul f g) = highestDegree $ simplify (Mul f g)
+
+countTerms :: Polynomial -> Natural
+countTerms (Mono c d) = 1
+countTerms (Add f g) = (+) (countTerms f) (countTerms g)
+countTerms (Mul f g) = countTerms $ simplify (Mul f g)
+
+
+factorable :: Polynomial -> Bool 
+factorable p
+    | highestDegree p > 2 = False 
+    | otherwise = True
+
+-- Factoring a monomial : Just return the monomial
+-- OTHERWISE 
+    -- Check if the max degree is 2 
+        -- Yes: Factorise it
+        -- No: Error 
+quadFactor :: Polynomial -> Polynomial 
+quadFactor (Mono c d) = (Mono c d)
+quadFactor p = quadFactor' $ simplify p
+
+quadFactor' :: Polynomial -> Polynomial
+quadFactor' (Mono c d) = undefined
+quadFactor' (Add f g)  = undefined
+

@@ -7,4 +7,7 @@
 4. Differentiation and simple integration (of functions)
 5. Solving equations (some simple ones maybe?)
 
+-- Extra notes
 
+- Calculator will initally, only work with single variables across the board (to make 
+  my life a lot easier)
