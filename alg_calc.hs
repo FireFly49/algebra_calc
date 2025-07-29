@@ -13,17 +13,29 @@ data Func = Sin | Cos | Log | Exp
     deriving (Eq)
 
 
-instance Show a => Show (Expr a) where
-  show :: (Expr a) -> String 
-  show Var = "x"
-  show (Const a) = show a
-  show (Add p1 p2) = show p1 ++ " + " ++ show p2
-  show (Mul p1 p2)
-    | (Mul x y) <- p1, (Mul a b) <- p2 = show p1 ++ show p2
-    | (Mul x y) <- p1 = show p1 ++ "(" ++ show p2 ++ ")"
-    | (Mul x y) <- p2 = "(" ++ show p1 ++ ")" ++ show p2
-    | otherwise = "(" ++ show p1 ++ ")" ++ "(" ++ show p2 ++ ")"
-  show (Div p1 p2) = show p1 ++ " / " ++ show p2
+-- instance Show a => Show (Expr a) where
+--   show :: (Expr a) -> String 
+--   show Var = "x"
+--   show (Const a) = show a
+--   show (Add p1 p2) = show p1 ++ " + " ++ show p2
+--   show (Mul p1 p2)
+--     | (Mul x y) <- p1, (Mul a b) <- p2 = show p1 ++ show p2
+--     | (Mul x y) <- p1 = show p1 ++ "(" ++ show p2 ++ ")"
+--     | (Mul x y) <- p2 = "(" ++ show p1 ++ ")" ++ show p2
+--     | otherwise = "(" ++ show p1 ++ ")" ++ "(" ++ show p2 ++ ")"
+--   show (Div p1 p2) = show p1 ++ " / " ++ show p2
+-- flattenMul :: Expr a -> [Expr a]
+-- flattenMul (Mul x y) = flattenMul x ++ flattenMul y
+-- flattenMul e         = [e]
+
+
+
+-- instance Show a => Show (Expr a) where
+--   show Var = "x"
+--   show (Const a) = show a
+--   show (Add p1 p2) = show p1 ++ " + " ++ show p2
+--   show (Mul p1 p2) = formatMul (flattenMul (Mul p1 p2))
+--   show (Div p1 p2) = "(" ++ show p1 ++ " / " ++ show p2 ++ ")"
 
 eval :: Floating a => Expr a -> a -> a
 eval Var       c = c
