@@ -1,0 +1,61 @@
+data Expr a = Var String
+              | Const a 
+              | Add (Expr a) (Expr a)
+              | Mul (Expr a) (Expr a)
+              | Div (Expr a) (Expr a)
+              | Pow (Expr a) (Expr a)
+              | Neg (Expr a)
+              | Apply Func (Expr a)
+    deriving (Eq)
+
+data Func = Sin | Cos | Log | Exp 
+-- | Asin | Acos | Atan
+    deriving (Eq)
+
+instance Show a => Show (Expr a) where
+  show :: Expr a -> String
+  show (Var a)   = a
+  show (Const a) = show a 
+  show (Add a b) = show a ++ " + " ++ show b
+  show (Mul p1 p2)
+    | (Mul x y) <- p1, (Mul a b) <- p2 = show p1 ++ show p2
+    | (Mul x y) <- p1 = show p1 ++ "(" ++ show p2 ++ ")"
+    | (Mul x y) <- p2 = "(" ++ show p1 ++ ")" ++ show p2
+    | otherwise = "(" ++ show p1 ++ ")" ++ "(" ++ show p2 ++ ")"
+  show (Div a b) = show a ++ " / " ++ show b
+  show (Pow a b) = show a ++ " ^ " ++ show b
+  show (Neg a)   = " - " ++ show a
+
+
+eval :: Floating a => Expr a -> a -> a
+eval (Var a)   c         = c
+eval (Const a) c         = a
+eval (Add f g) c         = eval f c + eval g c
+eval (Mul f g) c         = eval f c * eval g c
+eval (Div f g) c         = eval f c / eval g c
+eval (Pow f g) c         = eval f c ** eval g c
+eval (Neg a)   c         = (-1) * eval a c
+eval (Apply func expr) c = 
+  case func of
+    Sin -> sin (eval expr c)
+    Cos -> cos (eval expr c)
+    Log -> log (eval expr c)
+    Exp -> exp (eval expr c)
+
+diff :: Fractional a => Expr a -> Expr a
+diff (Var a)   = Const 1 
+diff (Const _) = Const 0
+diff (Add f g) = Add (diff f) (diff g)
+diff (Mul f g) = Add (Mul (diff f) g) (Mul f (diff g))
+diff (Div f g) = Div (Add (Mul g $ diff f) $ Neg (Mul f $ diff g)) (Pow g (Const 2))
+-- diff (Pow f g) = # This should only be done if the base is a variable. Otherwise out of scope and so we should terminate
+diff (Neg f)   = Neg (diff f)
+diff (Apply func expr) = diffFunc (Apply func expr)
+
+
+diffFunc :: Fractional a => Expr a -> Expr a
+diffFunc (Apply Sin expr) = Mul (diff expr) (Apply Cos expr)
+diffFunc (Apply Cos expr) = Mul (diff expr) $ Neg (Apply Sin expr)
+diffFunc (Apply Log expr) = Div (diff expr) expr 
+diffFunc (Apply Exp expr) = Mul (diff expr) (Apply Exp expr)
+
