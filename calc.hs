@@ -3,7 +3,7 @@ data Expr a = Var String
               | Add (Expr a) (Expr a)
               | Mul (Expr a) (Expr a)
               | Div (Expr a) (Expr a)
-              | Pow (Expr a) (Expr a)
+              | Pow (Expr a) Integer
               | Neg (Expr a)
               | Apply Func (Expr a)
     deriving (Eq)
@@ -33,7 +33,7 @@ eval (Const a) c         = a
 eval (Add f g) c         = eval f c + eval g c
 eval (Mul f g) c         = eval f c * eval g c
 eval (Div f g) c         = eval f c / eval g c
-eval (Pow f g) c         = eval f c ** eval g c
+eval (Pow f g) c = eval f c ** fromInteger g
 eval (Neg a)   c         = (-1) * eval a c
 eval (Apply func expr) c = 
   case func of
@@ -46,9 +46,9 @@ diff :: Fractional a => Expr a -> Expr a
 diff (Var a)   = Const 1 
 diff (Const _) = Const 0
 diff (Add f g) = Add (diff f) (diff g)
-diff (Mul f g) = Add (Mul (diff f) g) (Mul f (diff g))
-diff (Div f g) = Div (Add (Mul g $ diff f) $ Neg (Mul f $ diff g)) (Pow g (Const 2))
--- diff (Pow f g) = # This should only be done if the base is a variable. Otherwise out of scope and so we should terminate
+diff (Mul f g) = Add (Mul (diff f) g) (Mul f (diff g)) -- Product Rule
+diff (Div f g) = Div (Add (Mul g $ diff f) $ Neg (Mul f $ diff g)) (Pow g 2) -- Quotient Rule
+diff (Pow f g) = Mul (diff f) (Mul (Const $ fromInteger g) (Pow f (fromInteger g-1))) -- Chain rule
 diff (Neg f)   = Neg (diff f)
 diff (Apply func expr) = diffFunc (Apply func expr)
 
