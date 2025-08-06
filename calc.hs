@@ -4,7 +4,6 @@ data Expr a = Var String
               | Mul (Expr a) (Expr a)
               | Div (Expr a) (Expr a)
               | Pow (Expr a) Integer
-              | Neg (Expr a)
               | Apply Func (Expr a)
     deriving (Eq)
 
@@ -24,8 +23,6 @@ instance Show a => Show (Expr a) where
     | otherwise = "(" ++ show p1 ++ ")" ++ "(" ++ show p2 ++ ")"
   show (Div a b) = show a ++ " / " ++ show b
   show (Pow a b) = show a ++ " ^ " ++ show b
-  show (Neg a)   = " - " ++ show a
-
 
 eval :: Floating a => Expr a -> a -> a
 eval (Var a)   c         = c
@@ -34,7 +31,6 @@ eval (Add f g) c         = eval f c + eval g c
 eval (Mul f g) c         = eval f c * eval g c
 eval (Div f g) c         = eval f c / eval g c
 eval (Pow f g) c = eval f c ** fromInteger g
-eval (Neg a)   c         = (-1) * eval a c
 eval (Apply func expr) c = 
   case func of
     Sin -> sin (eval expr c)
@@ -47,15 +43,14 @@ diff (Var a)   = Const 1
 diff (Const _) = Const 0
 diff (Add f g) = Add (diff f) (diff g)
 diff (Mul f g) = Add (Mul (diff f) g) (Mul f (diff g)) -- Product Rule
-diff (Div f g) = Div (Add (Mul g $ diff f) $ Neg (Mul f $ diff g)) (Pow g 2) -- Quotient Rule
+diff (Div f g) = Div (Add (Mul g $ diff f) $ Mul (Const (-1)) (Mul f $ diff g)) (Pow g 2) -- Quotient Rule
 diff (Pow f g) = Mul (diff f) (Mul (Const $ fromInteger g) (Pow f (fromInteger g-1))) -- Chain rule
-diff (Neg f)   = Neg (diff f)
 diff (Apply func expr) = diffFunc (Apply func expr)
 
 
 diffFunc :: Fractional a => Expr a -> Expr a
 diffFunc (Apply Sin expr) = Mul (diff expr) (Apply Cos expr)
-diffFunc (Apply Cos expr) = Mul (diff expr) $ Neg (Apply Sin expr)
+diffFunc (Apply Cos expr) = Mul (diff expr) $ Mul (Const (-1)) (Apply Sin expr)
 diffFunc (Apply Log expr) = Div (diff expr) expr 
 diffFunc (Apply Exp expr) = Mul (diff expr) (Apply Exp expr)
 
